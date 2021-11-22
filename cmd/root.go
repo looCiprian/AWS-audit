@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"AWS-audit/internal/auditor"
 	"fmt"
 	"os"
 
@@ -13,6 +14,10 @@ var rootCmd = &cobra.Command{
 	Use:   "AWS-audit",
 	Short: "AWS-audit is a AWS service audit",
 	Long:  `AWS-audit is a AWS service audit`,
+	Run: func(cmd *cobra.Command, args []string) {
+		servicesToAudit := auditor.AuditorImporter(configFile)
+		auditor.Run(servicesToAudit)
+	},
 }
 
 var versionCmd = &cobra.Command{
@@ -24,22 +29,12 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-var sourceFile = &cobra.Command{
-	Use:   "config",
-	Short: "Import file configuration (yaml)",
-	Long:  `Import file configuration containings services to audit`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-	},
-}
-
 func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(sourceFile)
 
-	sourceFile.Flags().StringVarP(&configFile, "config", "c", "", "config file aws-audit.yaml")
-	sourceFile.MarkFlagRequired("config")
+	rootCmd.Flags().StringVarP(&configFile, "config", "c", "", "config file aws-audit.yaml")
+	rootCmd.MarkFlagRequired("config")
 }
 
 func Execute() {

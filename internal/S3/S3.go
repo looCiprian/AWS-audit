@@ -3,6 +3,7 @@ package S3
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	utils "AWS-audit/internal/utils"
 
@@ -12,8 +13,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func S3() {
+func Audit(s3ToAudit *utils.Audit) {
 
+	if s3ToAudit.S3 == nil {
+		utils.PrintInfo("No S3 configuration found")
+		return
+	}
 
 	// Create a new session in the us-west-2 region
 	sess := session.Must(session.NewSession(
@@ -21,25 +26,31 @@ func S3() {
 			Region: aws.String("us-east-2")}),
 	)
 
-	Run(sess)
+	// if wildcard is preset all buckets are audited
+	if utils.CheckWildCard(s3ToAudit.S3) {
+		s3ToAudit.S3 = listBuckets(sess)
+	}
+
+	utils.PrintInfo("Auditing S3")
+
+	// for each bucket in s3ToAudit call run function
+	for _, bucket := range s3ToAudit.S3 {
+		utils.PrintInfo("Auditing " + bucket)
+		run(sess, bucket)
+	}
 
 }
 
-func Run(sess *session.Session){
-
-
-	bucket := "bucketaudit"
+func run(sess *session.Session, bucket string) {
 
 	// get bucket region
-	region := GetBucketRegion(bucket, sess)
+	region := getBucketRegion(bucket, sess)
+
 	if region == "" {
 		utils.PrintError("Unable to find bucket region")
 	}
 
-	// update session region
-	sess.Config.Region = aws.String(region)
-
-	svc := s3.New(sess)
+	svc := s3.New(sess, aws.NewConfig().WithRegion(region))
 
 	// get bucket policy
 	result, err := svc.GetBucketPolicy(&s3.GetBucketPolicyInput{
@@ -60,7 +71,7 @@ func Run(sess *session.Session){
 		utils.PrintError(fmt.Sprintf("Unable to get bucket %q policy, %v.", bucket, err))
 	}
 
-	//mypolicy, err1 := policy.LoadPolicy([]byte(aws.StringValue(result.Policy)))
+	//utils.PrintInfo(aws.StringValue(result.Policy))
 
 	var myPolicy utils.Policy
 	err1 := json.Unmarshal([]byte(aws.StringValue(result.Policy)), &myPolicy)
@@ -68,7 +79,45 @@ func Run(sess *session.Session){
 		utils.PrintError(fmt.Sprintf("Unable to parse policy, %v.", err1))
 	}
 
-	fmt.Println(aws.StringValue(result.Policy))
-	fmt.Println(myPolicy.Statements[0].Action[0])
+	//fmt.Println(aws.StringValue(result.Policy))
+	//fmt.Println(myPolicy.Statements[0].Action[0])
+	auditS3Policy(bucket, myPolicy)
 
+}
+
+func auditS3Policy(bucket string, policy utils.Policy) {
+
+	for i, statement := range policy.Statements {
+		// for each Principal in statement check if it contains *
+		utils.PrintInfo("Checking principals for " + bucket)
+		for _, principals := range statement.Principal {
+			for _, principal := range principals {
+				result := fmt.Sprintf("Bucket %s has a principal %s, actions: %s, effects: %s, resources: %s, conditions: %s", bucket, principal, policy.Statements[i].Action, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
+				if checkWildCard(principal) {
+					utils.PrintOutputCritical(result)
+				} else {
+					utils.PrintOutputLow(result)
+				}
+			}
+		}
+
+		utils.PrintInfo("Checking actions for " + bucket)
+		// for each Action in statement check if it contains *
+		if statement.Action != nil {
+			for _, action := range statement.Action {
+				result := fmt.Sprintf("Bucket %s has an action %s, principal %s, effects: %s, resources %s, conditions: %s", bucket, action, policy.Statements[i].Principal, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
+				if checkWildCard(action) {
+					utils.PrintOutputCritical(result)
+				} else {
+					utils.PrintOutputLow(result)
+				}
+			}
+		}
+
+	}
+
+}
+
+func checkWildCard(statement string) bool {
+	return strings.Contains(statement, "*")
 }
