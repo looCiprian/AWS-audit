@@ -11,7 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
-func Audit(lambdaToAudit *utils.Audit) {
+func Audit() {
+
+	lambdaToAudit := utils.GetServicesToAudit()
 
 	if lambdaToAudit.Lambda == nil {
 		utils.PrintInfo("No Lambda configuration found")

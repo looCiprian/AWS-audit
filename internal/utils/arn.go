@@ -3,6 +3,7 @@ package utils
 import (
 	"strings"
 
+	awsArn "github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/gigawattio/awsarn"
 )
 
@@ -24,4 +25,18 @@ func GetRoleNameFromARN(arn string) string {
 	roleName := strings.Split(component.Resource, "/")[1]
 
 	return roleName
+}
+
+func IsArn(arn string) bool {
+
+	return awsArn.IsARN(arn)
+}
+
+func GetAccountIdFromARN(arn string) string {
+	component, err := awsarn.Parse(arn)
+	if err != nil {
+		return ""
+	}
+
+	return component.AccountID
 }

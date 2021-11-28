@@ -8,3 +8,13 @@ type Audit struct {
 
 type Buckets []string
 type Lambdas []string
+
+var audit *Audit
+
+func SetAudit(auditToSet *Audit) {
+	audit = auditToSet
+}
+
+func GetServicesToAudit() *Audit {
+	return audit
+}

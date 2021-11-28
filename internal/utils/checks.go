@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+)
 
 // check if * is in the array
 func CheckWildCardInStringArray(s []string) bool {
@@ -15,4 +17,15 @@ func CheckWildCardInStringArray(s []string) bool {
 // check if string contains *
 func CheckWildCardInString(statement string) bool {
 	return strings.Contains(statement, "*")
+}
+
+func GetAccountId() string {
+	services := GetServicesToAudit()
+
+	if services == nil {
+		return ""
+	}
+
+	return services.AccountId
+
 }

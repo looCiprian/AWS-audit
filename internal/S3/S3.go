@@ -14,7 +14,9 @@ import (
 	//"github.com/aws/aws-sdk-go/service/s3control"
 )
 
-func Audit(s3ToAudit *utils.Audit) {
+func Audit() {
+
+	s3ToAudit := utils.GetServicesToAudit()
 
 	if s3ToAudit.S3 == nil {
 		utils.PrintInfo("No S3 configuration found")

@@ -8,7 +8,9 @@ import (
 
 func Run(servicesToAudit *utils.Audit) {
 
-	s3.Audit(servicesToAudit)
-	lambda.Audit(servicesToAudit)
+	utils.SetAudit(servicesToAudit)
+
+	s3.Audit()
+	lambda.Audit()
 
 }

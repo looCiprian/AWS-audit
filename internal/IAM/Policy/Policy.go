@@ -6,7 +6,7 @@ import (
 )
 
 // TODO: to be implemented if policy will be inserted in the config yaml file
-func Audit(policyToAudit *utils.Audit) {
+func Audit() {
 
 }
 
@@ -15,7 +15,26 @@ func RunPolicyAudit(serviceName string, service string, policy utils.PolicyDocum
 	CheckPolicyPrincipal(serviceName, service, policy)
 	CheckPolicyAction(serviceName, service, policy)
 	CheckPolicyResource(serviceName, service, policy)
+	CheckCrossAccountAccess(serviceName, service, policy)
 
+}
+
+// Check Cross Account Access, by looking if policy principal as different account id
+func CheckCrossAccountAccess(serviceName string, service string, policy utils.PolicyDocument) {
+	for i, statement := range policy.Statements {
+		// for each Principal in statement check if it contains *
+		utils.PrintInfo("Checking cross account access for " + serviceName + " " + service)
+		for _, principals := range statement.Principal {
+			for _, principal := range principals {
+				result := fmt.Sprintf(serviceName+" %s allow cross account access to %s, actions: %s, effects: %s, resources: %s, conditions: %s", service, principal, policy.Statements[i].Action, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
+				if utils.IsArn(principal) {
+					if utils.GetAccountId() != utils.GetAccountIdFromARN(principal) {
+						utils.PrintOutputCritical(result)
+					}
+				}
+			}
+		}
+	}
 }
 
 // audit principal of a policy document
@@ -23,7 +42,7 @@ func CheckPolicyPrincipal(serviceName string, service string, policy utils.Polic
 
 	for i, statement := range policy.Statements {
 		// for each Principal in statement check if it contains *
-		utils.PrintInfo("Checking actions for " + serviceName + " " + service)
+		utils.PrintInfo("Checking principal for " + serviceName + " " + service)
 		for _, principals := range statement.Principal {
 			for _, principal := range principals {
 				result := fmt.Sprintf(serviceName+" %s has a principal %s, actions: %s, effects: %s, resources: %s, conditions: %s", service, principal, policy.Statements[i].Action, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
