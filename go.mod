@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/aws/aws-sdk-go v1.42.9
 	github.com/fatih/color v1.7.0
+	github.com/gigawattio/awsarn v0.0.0-20180317190237-a28d04d20421
 	github.com/spf13/cobra v1.2.1
 	gopkg.in/yaml.v2 v2.4.0
 )

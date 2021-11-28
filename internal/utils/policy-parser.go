@@ -7,7 +7,7 @@ import (
 
 //https://github.com/aws/aws-sdk-go-v2/issues/225
 
-type Policy struct {
+type PolicyDocument struct {
 	// 2012-10-17 or 2008-10-17 old policies, do NOT use this for new policies
 	Version    string      `json:"Version"`
 	Id         string      `json:"Id,omitempty"`
@@ -28,6 +28,8 @@ type Statement struct {
 
 // AWS allows string or []string as value, we convert everything to []string to avoid casting
 type Value []string
+
+// AWS allows string es. "*", we convert everything to map[string]Value es {"AWS": {"*"}}
 type PrincipalValue map[string]Value
 
 // unmarshalljson to unmarshall Principal

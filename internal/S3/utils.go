@@ -1,4 +1,4 @@
-package S3
+package s3
 
 import (
 	utils "AWS-audit/internal/utils"
@@ -39,6 +39,7 @@ func listBuckets(sess *session.Session) []string {
 	result, err := svc.ListBuckets(nil)
 	if err != nil {
 		utils.PrintError(fmt.Sprintf("Unable to list buckets, %v.", err))
+		return buckets
 	}
 
 	for _, b := range result.Buckets {
