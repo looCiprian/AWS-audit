@@ -88,7 +88,7 @@ func CheckPolicyResource(serviceName string, service string, policy utils.Policy
 			for _, resource := range statement.Resource {
 				result := fmt.Sprintf(serviceName+" %s has a resource %s, actions: %s, principal %s, effects: %s, conditions: %s", service, resource, policy.Statements[i].Action, policy.Statements[i].Principal, policy.Statements[i].Effect, policy.Statements[i].Condition)
 				if utils.CheckWildCardInString(resource) {
-					utils.PrintOutputMedium(result)
+					utils.PrintOutputCritical(result)
 				} else {
 					utils.PrintOutputLow(result)
 				}
