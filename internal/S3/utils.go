@@ -2,31 +2,24 @@ package s3
 
 import (
 	utils "AWS-audit/internal/utils"
-	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3control"
 )
 
 // get bucket region
 func getBucketRegion(sess *session.Session, bucket string) string {
 
-	region, err := s3manager.GetBucketRegion(context.Background(), sess, "bucketaudit", "us-west-2")
+	url := fmt.Sprintf("https://%s.s3.amazonaws.com", bucket)
+	res, err := http.Head(url)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
-			utils.PrintError("unable to find bucket region not found")
-		}
 		return ""
 	}
-
-	//utils.PrintInfo(("Bucket is in %s region\n", region)
-
-	return region
+	return res.Header.Get("X-Amz-Bucket-Region")
 }
 
 // list buckets in account

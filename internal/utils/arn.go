@@ -21,8 +21,14 @@ func GetRoleNameFromARN(arn string) string {
 		return ""
 	}
 
-	// e.s service-role/test-role-x8v6h8l6
-	roleName := strings.Split(component.Resource, "/")[1]
+	roleName := ""
+
+	if strings.Contains(component.Resource, "/") {
+		// e.s service-role/test-role-x8v6h8l6
+		roleName = strings.Split(component.Resource, "/")[1]
+	} else {
+		roleName = component.Resource
+	}
 
 	return roleName
 }

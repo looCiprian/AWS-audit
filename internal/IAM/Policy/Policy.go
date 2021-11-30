@@ -46,7 +46,7 @@ func CheckPolicyPrincipal(serviceName string, service string, policy utils.Polic
 		for _, principals := range statement.Principal {
 			for _, principal := range principals {
 				result := fmt.Sprintf(serviceName+" %s has a principal %s, actions: %s, effects: %s, resources: %s, conditions: %s", service, principal, policy.Statements[i].Action, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
-				if utils.CheckWildCardInString(principal) {
+				if utils.CheckWildCardInString(principal) && statement.Effect != "Deny" {
 					utils.PrintOutputCritical(result)
 				} else {
 					utils.PrintOutputLow(result)
@@ -66,7 +66,7 @@ func CheckPolicyAction(serviceName string, service string, policy utils.PolicyDo
 		if statement.Action != nil {
 			for _, action := range statement.Action {
 				result := fmt.Sprintf(serviceName+" %s has an action %s, principal %s, effects: %s, resources %s, conditions: %s", service, action, policy.Statements[i].Principal, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
-				if utils.CheckWildCardInString(action) {
+				if utils.CheckWildCardInString(action) && statement.Effect != "Deny" {
 					utils.PrintOutputCritical(result)
 				} else {
 					utils.PrintOutputLow(result)
@@ -87,7 +87,7 @@ func CheckPolicyResource(serviceName string, service string, policy utils.Policy
 		if statement.Resource != nil {
 			for _, resource := range statement.Resource {
 				result := fmt.Sprintf(serviceName+" %s has a resource %s, actions: %s, principal %s, effects: %s, conditions: %s", service, resource, policy.Statements[i].Action, policy.Statements[i].Principal, policy.Statements[i].Effect, policy.Statements[i].Condition)
-				if utils.CheckWildCardInString(resource) {
+				if utils.CheckWildCardInString(resource) && statement.Effect != "Deny" {
 					utils.PrintOutputCritical(result)
 				} else {
 					utils.PrintOutputLow(result)

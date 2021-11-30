@@ -52,14 +52,14 @@ func Audit() {
 	utils.PrintInfo("Auditing Lambda Functions")
 
 	for arn, functionConfiguration := range lambdaConfigurations {
-		//utils.PrintInfo("Auditing Lambda Function Code Signing for " + arn)
-		//runLambdaCodeSigningAudit(sess, functionConfiguration)
+		utils.PrintInfo("Auditing Lambda Function Code Signing for " + arn)
+		runLambdaCodeSigningAudit(sess, functionConfiguration)
 
 		utils.PrintInfo("Auditing Lambda Function Role for " + arn)
 		runLambdaRoleAudit(sess, functionConfiguration)
 
-		//utils.PrintInfo("Auditing Lambda Function Resourse Policy for " + arn)
-		//runLambdaResourcePolicyAudit(sess, functionConfiguration)
+		utils.PrintInfo("Auditing Lambda Function Resourse Policy for " + arn)
+		runLambdaResourcePolicyAudit(sess, functionConfiguration)
 
 	}
 
@@ -89,7 +89,7 @@ func runLambdaRoleAudit(sess *session.Session, function *lambda.FunctionConfigur
 		return
 	}
 
-	// get the roleName 
+	// get the roleName
 	roleName := utils.GetRoleNameFromARN(role)
 
 	// get all the policy arn of the attached policies of the role
@@ -112,7 +112,6 @@ func runLambdaRoleAudit(sess *session.Session, function *lambda.FunctionConfigur
 		}
 	}
 
-
 	// get inline policies for the role
 	inlinePoliciesName, err := iam.ListInlinePolicyNamesFromRole(sess, roleName)
 
@@ -120,7 +119,6 @@ func runLambdaRoleAudit(sess *session.Session, function *lambda.FunctionConfigur
 		utils.PrintError("Error getting inline policies for " + aws.StringValue(function.FunctionArn))
 		return
 	}
-	
 
 	// get all the inline policy documents of all the inline policies
 	inlinePoliciesDocuments := make(map[string]*utils.PolicyDocument)

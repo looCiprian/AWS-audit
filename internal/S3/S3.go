@@ -126,12 +126,6 @@ func runS3PolicyAudit(sess *session.Session, bucket string, region string) {
 	policyAuditor.RunPolicyAudit("Bucket", bucket, myPolicy)
 }
 
-func auditS3Policy(bucket string, policy utils.PolicyDocument) {
-	policyAuditor.CheckPolicyPrincipal("Bucket", bucket, policy)
-	policyAuditor.CheckPolicyAction("Bucket", bucket, policy)
-	policyAuditor.CheckPolicyResource("Bucket", bucket, policy)
-}
-
 // start audit access point policy of a bucket
 func runS3AccessPointPolicyAudit(sess *session.Session, bucket string, region string, accountId string) {
 
@@ -243,19 +237,19 @@ func runS3PublicAccessBlockAudit(sess *session.Session, bucket string, region st
 
 func checkPublicAccessBlock(serviceName string, bucket string, publicAccessBlock *s3.GetPublicAccessBlockOutput) {
 
-	if aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.BlockPublicAcls) {
+	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.BlockPublicAcls) {
 		result := fmt.Sprintf(serviceName+" has a blockPublicAcls set to true for bucket %s", bucket)
 		utils.PrintOutputCritical(result)
 	}
-	if aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.BlockPublicPolicy) {
+	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.BlockPublicPolicy) {
 		result := fmt.Sprintf(serviceName+" has a blockPublicPolicy set to true for bucket %s", bucket)
 		utils.PrintOutputCritical(result)
 	}
-	if aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.IgnorePublicAcls) {
+	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.IgnorePublicAcls) {
 		result := fmt.Sprintf(serviceName+" has a ignorePublicAcls set to true for bucket %s", bucket)
 		utils.PrintOutputCritical(result)
 	}
-	if aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.RestrictPublicBuckets) {
+	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.RestrictPublicBuckets) {
 		result := fmt.Sprintf(serviceName+" has a restrictPublicBuckets set to true for bucket %s", bucket)
 		utils.PrintOutputCritical(result)
 	}
@@ -312,11 +306,21 @@ func runS3VersioningAudit(sess *session.Session, bucket string, region string) {
 	if result.Status == nil {
 		result1 := fmt.Sprintf("Bucket versioning is not present for bucket %s", bucket)
 		utils.PrintOutputMedium(result1)
+	} else {
+		if aws.StringValue(result.Status) == "Suspended" {
+			result1 := fmt.Sprintf("Bucket versioning is not present for bucket %s", bucket)
+			utils.PrintOutputMedium(result1)
+		}
 	}
 
 	if result.MFADelete == nil {
 		result1 := fmt.Sprintf("Bucket MFA Delete is not present for bucket %s", bucket)
 		utils.PrintOutputCritical(result1)
+	} else {
+		if aws.StringValue(result.MFADelete) == "Disabled" {
+			result1 := fmt.Sprintf("Bucket MFA Delete is not present for bucket %s", bucket)
+			utils.PrintOutputCritical(result1)
+		}
 	}
 }
 
