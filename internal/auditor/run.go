@@ -4,6 +4,7 @@ import (
 	"AWS-audit/internal/lambda"
 	"AWS-audit/internal/s3"
 	utils "AWS-audit/internal/utils"
+	"AWS-audit/internal/vuln"
 )
 
 func Run(servicesToAudit *utils.Audit) {
@@ -13,4 +14,5 @@ func Run(servicesToAudit *utils.Audit) {
 	s3.Audit()
 	lambda.Audit()
 
+	vuln.PrintVulnerabilities()
 }

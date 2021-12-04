@@ -2,6 +2,7 @@ package policy
 
 import (
 	"AWS-audit/internal/utils"
+	"AWS-audit/internal/vuln"
 	"fmt"
 )
 
@@ -12,9 +13,9 @@ func Audit() {
 
 func RunPolicyAudit(serviceName string, service string, policy utils.PolicyDocument) {
 
-	CheckPolicyPrincipal(serviceName, service, policy)
-	CheckPolicyAction(serviceName, service, policy)
-	CheckPolicyResource(serviceName, service, policy)
+	CheckPolicyWildCardPrincipal(serviceName, service, policy)
+	CheckPolicyWildCardAction(serviceName, service, policy)
+	CheckPolicyWildCardResource(serviceName, service, policy)
 	CheckCrossAccountAccess(serviceName, service, policy)
 
 }
@@ -29,6 +30,7 @@ func CheckCrossAccountAccess(serviceName string, service string, policy utils.Po
 				result := fmt.Sprintf(serviceName+" %s allow cross account access to %s, actions: %s, effects: %s, resources: %s, conditions: %s", service, principal, policy.Statements[i].Action, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
 				if utils.IsArn(principal) {
 					if utils.GetAccountId() != utils.GetAccountIdFromARN(principal) {
+						vuln.NewVulnerability(vuln.IAMPolicyCrossAccount, result, vuln.AmazonIAM, service, vuln.SeverityHigh)
 						utils.PrintOutputCritical(result)
 					}
 				}
@@ -38,7 +40,7 @@ func CheckCrossAccountAccess(serviceName string, service string, policy utils.Po
 }
 
 // audit principal of a policy document
-func CheckPolicyPrincipal(serviceName string, service string, policy utils.PolicyDocument) {
+func CheckPolicyWildCardPrincipal(serviceName string, service string, policy utils.PolicyDocument) {
 
 	for i, statement := range policy.Statements {
 		// for each Principal in statement check if it contains *
@@ -47,8 +49,10 @@ func CheckPolicyPrincipal(serviceName string, service string, policy utils.Polic
 			for _, principal := range principals {
 				result := fmt.Sprintf(serviceName+" %s has a principal %s, actions: %s, effects: %s, resources: %s, conditions: %s", service, principal, policy.Statements[i].Action, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
 				if utils.CheckWildCardInString(principal) && statement.Effect != "Deny" {
+					vuln.NewVulnerability(vuln.IAMPolicyWildCardPrincipal, result, vuln.AmazonIAM, service, vuln.SeverityHigh)
 					utils.PrintOutputCritical(result)
 				} else {
+					vuln.NewVulnerability(vuln.IAMInfo, result, vuln.AmazonIAM, service, vuln.SeverityInfo)
 					utils.PrintOutputLow(result)
 				}
 			}
@@ -57,7 +61,7 @@ func CheckPolicyPrincipal(serviceName string, service string, policy utils.Polic
 }
 
 // audit action of a policy document
-func CheckPolicyAction(serviceName string, service string, policy utils.PolicyDocument) {
+func CheckPolicyWildCardAction(serviceName string, service string, policy utils.PolicyDocument) {
 
 	for i, statement := range policy.Statements {
 
@@ -67,18 +71,19 @@ func CheckPolicyAction(serviceName string, service string, policy utils.PolicyDo
 			for _, action := range statement.Action {
 				result := fmt.Sprintf(serviceName+" %s has an action %s, principal %s, effects: %s, resources %s, conditions: %s", service, action, policy.Statements[i].Principal, policy.Statements[i].Effect, policy.Statements[i].Resource, policy.Statements[i].Condition)
 				if utils.CheckWildCardInString(action) && statement.Effect != "Deny" {
+					vuln.NewVulnerability(vuln.IAMPolicyWildCardAction, result, vuln.AmazonIAM, service, vuln.SeverityHigh)
 					utils.PrintOutputCritical(result)
 				} else {
+					vuln.NewVulnerability(vuln.IAMInfo, result, vuln.AmazonIAM, service, vuln.SeverityInfo)
 					utils.PrintOutputLow(result)
 				}
 			}
 		}
-
 	}
 }
 
 // audit resource of a policy document
-func CheckPolicyResource(serviceName string, service string, policy utils.PolicyDocument) {
+func CheckPolicyWildCardResource(serviceName string, service string, policy utils.PolicyDocument) {
 
 	for i, statement := range policy.Statements {
 
@@ -88,12 +93,13 @@ func CheckPolicyResource(serviceName string, service string, policy utils.Policy
 			for _, resource := range statement.Resource {
 				result := fmt.Sprintf(serviceName+" %s has a resource %s, actions: %s, principal %s, effects: %s, conditions: %s", service, resource, policy.Statements[i].Action, policy.Statements[i].Principal, policy.Statements[i].Effect, policy.Statements[i].Condition)
 				if utils.CheckWildCardInString(resource) && statement.Effect != "Deny" {
+					vuln.NewVulnerability(vuln.IAMPolicyWildCardResource, result, vuln.AmazonIAM, service, vuln.SeverityHigh)
 					utils.PrintOutputCritical(result)
 				} else {
+					vuln.NewVulnerability(vuln.IAMInfo, result, vuln.AmazonIAM, service, vuln.SeverityInfo)
 					utils.PrintOutputLow(result)
 				}
 			}
 		}
-
 	}
 }

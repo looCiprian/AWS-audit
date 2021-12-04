@@ -6,6 +6,7 @@ import (
 
 	policyAuditor "AWS-audit/internal/iam/policy"
 	utils "AWS-audit/internal/utils"
+	"AWS-audit/internal/vuln"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -190,11 +191,13 @@ func checkAcl(serviceName string, service string, acl *s3.GetBucketAclOutput) {
 			// check public access
 			if aws.StringValue(grant.Grantee.URI) == "http://acs.amazonaws.com/groups/global/AuthenticatedUsers" || aws.StringValue(grant.Grantee.URI) == "http://acs.amazonaws.com/groups/global/AllUsers" {
 				result := fmt.Sprintf(serviceName+" has a grant with URI %s, permission %s", aws.StringValue(grant.Grantee.URI), aws.StringValue(grant.Permission))
+				vuln.NewVulnerability(vuln.S3ACLPublic, result, vuln.AmazonS3, service, vuln.SeverityHigh)
 				utils.PrintOutputCritical(result)
 			}
 			// check logdelivery permissions
 			if aws.StringValue(grant.Grantee.URI) == "http://acs.amazonaws.com/groups/s3/LogDelivery" {
 				result := fmt.Sprintf(serviceName+" has a grant with URI %s, permission %s", aws.StringValue(grant.Grantee.URI), aws.StringValue(grant.Permission))
+				vuln.NewVulnerability(vuln.S3ACLPublic, result, vuln.AmazonS3, service, vuln.SeverityMedium)
 				utils.PrintOutputMedium(result)
 			}
 
@@ -204,6 +207,7 @@ func checkAcl(serviceName string, service string, acl *s3.GetBucketAclOutput) {
 		if grant.Grantee.DisplayName != nil {
 			if aws.StringValue(grant.Grantee.DisplayName) != owner {
 				result := fmt.Sprintf(serviceName+" has a grant with display name %s, permission %s", aws.StringValue(grant.Grantee.DisplayName), aws.StringValue(grant.Permission))
+				vuln.NewVulnerability(vuln.S3ACLPublic, result, vuln.AmazonS3, service, vuln.SeverityHigh)
 				utils.PrintOutputCritical(result)
 			}
 		}
@@ -238,19 +242,23 @@ func runS3PublicAccessBlockAudit(sess *session.Session, bucket string, region st
 func checkPublicAccessBlock(serviceName string, bucket string, publicAccessBlock *s3.GetPublicAccessBlockOutput) {
 
 	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.BlockPublicAcls) {
-		result := fmt.Sprintf(serviceName+" has a blockPublicAcls set to true for bucket %s", bucket)
+		result := fmt.Sprintf(serviceName+" has a blockPublicAcls set to false for bucket %s", bucket)
+		vuln.NewVulnerability(vuln.S3BlockPublicAccess, result, vuln.AmazonS3, bucket, vuln.SeverityHigh)
 		utils.PrintOutputCritical(result)
 	}
 	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.BlockPublicPolicy) {
-		result := fmt.Sprintf(serviceName+" has a blockPublicPolicy set to true for bucket %s", bucket)
+		result := fmt.Sprintf(serviceName+" has a blockPublicPolicy set to false for bucket %s", bucket)
+		vuln.NewVulnerability(vuln.S3BlockPublicAccess, result, vuln.AmazonS3, bucket, vuln.SeverityHigh)
 		utils.PrintOutputCritical(result)
 	}
 	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.IgnorePublicAcls) {
-		result := fmt.Sprintf(serviceName+" has a ignorePublicAcls set to true for bucket %s", bucket)
+		result := fmt.Sprintf(serviceName+" has a ignorePublicAcls set to false for bucket %s", bucket)
+		vuln.NewVulnerability(vuln.S3BlockPublicAccess, result, vuln.AmazonS3, bucket, vuln.SeverityHigh)
 		utils.PrintOutputCritical(result)
 	}
 	if !aws.BoolValue(publicAccessBlock.PublicAccessBlockConfiguration.RestrictPublicBuckets) {
-		result := fmt.Sprintf(serviceName+" has a restrictPublicBuckets set to true for bucket %s", bucket)
+		result := fmt.Sprintf(serviceName+" has a restrictPublicBuckets set to false for bucket %s", bucket)
+		vuln.NewVulnerability(vuln.S3BlockPublicAccess, result, vuln.AmazonS3, bucket, vuln.SeverityHigh)
 		utils.PrintOutputCritical(result)
 	}
 }
@@ -278,7 +286,8 @@ func runS3EncryptionConfigurationAudit(sess *session.Session, bucket string, reg
 
 	if result.ServerSideEncryptionConfiguration == nil {
 		result1 := fmt.Sprintf("Bucket encryption is not present for bucket %s", bucket)
-		utils.PrintOutputMedium(result1)
+		vuln.NewVulnerability(vuln.S3Encryption, result1, vuln.AmazonS3, bucket, vuln.SeverityHigh)
+		utils.PrintOutputCritical(result1)
 	}
 }
 
@@ -306,19 +315,23 @@ func runS3VersioningAudit(sess *session.Session, bucket string, region string) {
 	if result.Status == nil {
 		result1 := fmt.Sprintf("Bucket versioning is not present for bucket %s", bucket)
 		utils.PrintOutputMedium(result1)
+		vuln.NewVulnerability(vuln.S3Versioning, result1, vuln.AmazonS3, bucket, vuln.SeverityMedium)
 	} else {
 		if aws.StringValue(result.Status) == "Suspended" {
 			result1 := fmt.Sprintf("Bucket versioning is not present for bucket %s", bucket)
+			vuln.NewVulnerability(vuln.S3Versioning, result1, vuln.AmazonS3, bucket, vuln.SeverityMedium)
 			utils.PrintOutputMedium(result1)
 		}
 	}
 
 	if result.MFADelete == nil {
 		result1 := fmt.Sprintf("Bucket MFA Delete is not present for bucket %s", bucket)
+		vuln.NewVulnerability(vuln.S3DeleteMFA, result1, vuln.AmazonS3, bucket, vuln.SeverityMedium)
 		utils.PrintOutputMedium(result1)
 	} else {
 		if aws.StringValue(result.MFADelete) == "Disabled" {
 			result1 := fmt.Sprintf("Bucket MFA Delete is not present for bucket %s", bucket)
+			vuln.NewVulnerability(vuln.S3DeleteMFA, result1, vuln.AmazonS3, bucket, vuln.SeverityMedium)
 			utils.PrintOutputMedium(result1)
 		}
 	}
@@ -348,6 +361,7 @@ func runS3LoggingAudit(sess *session.Session, bucket string, region string) {
 	if result.LoggingEnabled == nil {
 		result1 := fmt.Sprintf("Bucket logging is not present for bucket %s", bucket)
 		utils.PrintOutputCritical(result1)
+		vuln.NewVulnerability(vuln.S3Logging, result1, vuln.AmazonS3, bucket, vuln.SeverityHigh)
 	}
 }
 
@@ -374,5 +388,6 @@ func runS3WebSiteAudit(sess *session.Session, bucket string, region string) {
 	if result.IndexDocument != nil {
 		result1 := fmt.Sprintf("Bucket website is enabled for bucket %s", bucket)
 		utils.PrintOutputMedium(result1)
+		vuln.NewVulnerability(vuln.S3Website, result1, vuln.AmazonS3, bucket, vuln.SeverityHigh)
 	}
 }
