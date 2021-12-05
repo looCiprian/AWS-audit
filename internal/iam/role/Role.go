@@ -1,7 +1,12 @@
 package role
 
 
-func CheckRolePolicy(arn string){
+func Audit(){
+
+	
+}
+
+func RunRoleAudit(arn string){
 
 
 

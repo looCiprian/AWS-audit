@@ -15,15 +15,15 @@ type PolicyDocument struct {
 }
 
 type Statement struct {
-	Sid          string          `json:"Sid,omitempty"`          // statement ID, service specific
-	Effect       string          `json:"Effect"`                 // Allow or Deny
-	Principal    PrincipalValue  `json:"Principal,omitempty"`    // principal that is allowed or denied
-	NotPrincipal PrincipalValue  `json:"NotPrincipal,omitempty"` // exception to a list of principals
-	Action       Value           `json:"Action"`                 // allowed or denied action
-	NotAction    Value           `json:"NotAction,omitempty"`    // matches everything except
-	Resource     Value           `json:"Resource,omitempty"`     // object or objects that the statement covers
-	NotResource  Value           `json:"NotResource,omitempty"`  // matches everything except
-	Condition    json.RawMessage `json:"Condition,omitempty"`    // conditions for when a policy is in effect
+	Sid          string         `json:"Sid,omitempty"`          // statement ID, service specific
+	Effect       string         `json:"Effect"`                 // Allow or Deny
+	Principal    PrincipalValue `json:"Principal,omitempty"`    // principal that is allowed or denied
+	NotPrincipal PrincipalValue `json:"NotPrincipal,omitempty"` // exception to a list of principals
+	Action       Value          `json:"Action"`                 // allowed or denied action
+	NotAction    Value          `json:"NotAction,omitempty"`    // matches everything except
+	Resource     Value          `json:"Resource,omitempty"`     // object or objects that the statement covers
+	NotResource  Value          `json:"NotResource,omitempty"`  // matches everything except
+	Condition    ConditionValue `json:"Condition,omitempty"`    // conditions for when a policy is in effect
 }
 
 // AWS allows string or []string as value, we convert everything to []string to avoid casting
@@ -31,6 +31,29 @@ type Value []string
 
 // AWS allows string es. "*", we convert everything to map[string]Value es {"AWS": {"*"}}
 type PrincipalValue map[string]Value
+
+type ConditionValue map[string]map[string]Value
+
+func (condition *ConditionValue) UnmarshalJSON(b []byte) error {
+
+	result := make(map[string]map[string]Value)
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	for k, v := range raw {
+		var value map[string]Value
+		if err := json.Unmarshal(v, &value); err != nil {
+			return err
+		}
+		result[k] = value
+	}
+
+	*condition = result
+
+	return nil
+}
 
 // unmarshalljson to unmarshall Principal
 func (principal *PrincipalValue) UnmarshalJSON(b []byte) error {
@@ -100,4 +123,14 @@ func (value *Value) UnmarshalJSON(b []byte) error {
 
 	*value = p
 	return nil
+}
+
+func UnmarshalPolicyDocument(decodePolicy string) (*PolicyDocument, error) {
+	var policyDocument *PolicyDocument
+	err2 := json.Unmarshal([]byte(decodePolicy), &policyDocument)
+
+	if err2 != nil {
+		return nil, err2
+	}
+	return policyDocument, nil
 }

@@ -103,3 +103,30 @@ func CheckPolicyWildCardResource(serviceName string, service string, policy util
 		}
 	}
 }
+
+func CheckS3PolicyHTTPAccess(serviceName string, service string, policy utils.PolicyDocument) {
+
+	isVulnerable := true
+
+	for _, statement := range policy.Statements {
+		v, ok := statement.Condition["Bool"]["aws:SecureTransport"]
+		if ok {
+			if len(v) != 0 {
+				for _, v := range v {
+					if v == "false" && statement.Effect == "Deny" {
+						isVulnerable = false
+						break
+					}
+				}
+			}
+
+		}
+	}
+
+	if isVulnerable {
+		result := fmt.Sprintf(serviceName+" %s allows HTTP access", service)
+		vuln.NewVulnerability(vuln.S3HTTPAccess, result, vuln.AmazonS3, service, vuln.SeverityHigh)
+		utils.PrintOutputCritical(result)
+		return
+	}
+}

@@ -4,6 +4,7 @@ import (
 	iam "AWS-audit/internal/iam"
 	iamPolicy "AWS-audit/internal/iam/policy"
 	utils "AWS-audit/internal/utils"
+	"AWS-audit/internal/vuln"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -79,7 +80,9 @@ func runLambdaCodeSigningAudit(sess *session.Session, function *lambda.FunctionC
 	}
 
 	if !result {
-		utils.PrintOutputMedium("Lambda Function " + aws.StringValue(function.FunctionArn) + " does not have Code Signing configuration")
+		result1 := "Lambda Function " + aws.StringValue(function.FunctionArn) + " does not have Code Signing configuration"
+		vuln.NewVulnerability(vuln.LambdaCodeSigning, result1, vuln.AmazonLambda, aws.StringValue(function.FunctionArn), vuln.SeverityMedium)
+		utils.PrintOutputMedium(result1)
 	}
 }
 
@@ -167,6 +170,8 @@ func runLambdaEnvironmentVariableAudit(sess *session.Session, function *lambda.F
 	}
 
 	for key, value := range environmentVariables {
-		utils.PrintOutputMedium("Lambda Function " + aws.StringValue(function.FunctionArn) + " has environment variable " + key + " set to " + value)
+		result1 := "Lambda Function " + aws.StringValue(function.FunctionArn) + " has environment variable " + key + " set to " + value
+		vuln.NewVulnerability(vuln.LambdaEnvVariables, result1, vuln.AmazonLambda, aws.StringValue(function.FunctionArn), vuln.SeverityMedium)
+		utils.PrintOutputMedium(result1)
 	}
 }

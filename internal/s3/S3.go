@@ -125,6 +125,7 @@ func runS3PolicyAudit(sess *session.Session, bucket string, region string) {
 
 	// audit bucket policy
 	policyAuditor.RunPolicyAudit("Bucket", bucket, myPolicy)
+	policyAuditor.CheckS3PolicyHTTPAccess("Bucket", bucket, myPolicy)
 }
 
 // start audit access point policy of a bucket
@@ -153,6 +154,7 @@ func runS3AccessPointPolicyAudit(sess *session.Session, bucket string, region st
 
 		// audit access point policy
 		policyAuditor.RunPolicyAudit("Access Point", accessPointName, myPolicy)
+		policyAuditor.CheckS3PolicyHTTPAccess("Bucket", bucket, myPolicy)
 
 	}
 }

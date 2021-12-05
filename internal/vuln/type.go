@@ -49,13 +49,17 @@ const (
 	S3Website                  VulnerabilityNameValue = "Amazon S3 Bucket website enabled"
 	S3BlockPublicAccess        VulnerabilityNameValue = "Amazon S3 Bucket doest not block public access"
 	S3DeleteMFA                VulnerabilityNameValue = "Amazon S3 Bucket MFA delete not enabled"
+	S3HTTPAccess               VulnerabilityNameValue = "Amazon S3 Bucket allows HTTP access"
 	IAMInfo                    VulnerabilityNameValue = "IAM configuration must be also validated manually"
 	IAMPolicyWildCardPrincipal VulnerabilityNameValue = "IAM principal allow *"
 	IAMPolicyWildCardAction    VulnerabilityNameValue = "IAM policy action allow *"
 	IAMPolicyWildCardResource  VulnerabilityNameValue = "IAM policy resource allow *"
 	IAMPolicyCrossAccount      VulnerabilityNameValue = "IAM policy allow cross account access"
+	LambdaCodeSigning          VulnerabilityNameValue = "Lambda function code signing not enabled"
+	LambdaEnvVariables         VulnerabilityNameValue = "Lambda function has environment variables"
 )
 
+// Remediations
 var remediations = map[VulnerabilityNameValue]string{
 	S3ACLPublic:                "Ensure that the bucket ACL not allows public access",
 	S3Versioning:               "Ensure that the bucket versioning is enabled",
@@ -64,9 +68,12 @@ var remediations = map[VulnerabilityNameValue]string{
 	S3Website:                  "Ensure that the bucket website is disabled",
 	S3BlockPublicAccess:        "Ensure that the bucket block public access is enabled",
 	S3DeleteMFA:                "Ensure that the bucket MFA delete is enabled",
+	S3HTTPAccess:               "Ensure that the bucket HTTP access is disabled",
 	IAMInfo:                    "Ensure that the IAM configuration is also validated manually",
 	IAMPolicyWildCardPrincipal: "Ensure that the principal is not *",
 	IAMPolicyWildCardAction:    "Ensure that the action is not *",
 	IAMPolicyWildCardResource:  "Ensure that the resource is not *",
 	IAMPolicyCrossAccount:      "Ensure that the policy does not allow cross account access",
+	LambdaCodeSigning:          "Ensure that the lambda function code signing is enabled",
+	LambdaEnvVariables:         "Ensure that the lambda function does not contain sensitive data or database credentials",
 }

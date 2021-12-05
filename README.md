@@ -12,6 +12,7 @@
 - Versioning
 - Logging
 - Web Site Audit functionality
+- Bucket Policy doent not prevent HTTP access
 
 ### Lambda
 
