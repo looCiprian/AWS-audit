@@ -107,11 +107,13 @@ func runS3PolicyAudit(sess *session.Session, bucket string, region string) {
 			switch aerr.Code() {
 			case s3.ErrCodeNoSuchBucket:
 				utils.PrintError(fmt.Sprintf("Bucket %q does not exist.", bucket))
+				return
 			case "NoSuchBucketPolicy":
 				utils.PrintError(fmt.Sprintf("Bucket %q does not have a policy.", bucket))
+				return
 			}
 		}
-		utils.PrintError(fmt.Sprintf("Unable to get bucket %q policy, %v.", bucket, err))
+		utils.PrintWarning(fmt.Sprintf("Unable to get bucket %q policy, %v.", bucket, err))
 		return
 	}
 

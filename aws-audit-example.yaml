@@ -1,0 +1,5 @@
+account_id: 1231231231233
+s3:
+    - mybucketname
+lambda:
+    - arn:aws:lambda:eu-central-1:1231231231233:function:test
