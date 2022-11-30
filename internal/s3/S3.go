@@ -25,9 +25,14 @@ func Audit() {
 	}
 
 	// Create a new session in the us-west-2 region
-	sess := session.Must(session.NewSession(
-		&aws.Config{
-			Region: aws.String("us-east-2")}),
+	sess := session.Must(
+		session.NewSessionWithOptions(
+			session.Options{
+				Profile: s3ToAudit.Profile,
+				Config: aws.Config{
+					Region: aws.String("us-east-2"),
+				},
+			}),
 	)
 
 	// if wildcard is preset all buckets in the account are audited

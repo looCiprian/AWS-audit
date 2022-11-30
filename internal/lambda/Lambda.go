@@ -20,8 +20,8 @@ func Audit() {
 		return
 	}
 
-	// Create a new session in the us-west-2 region
-	sess := session.Must(session.NewSession())
+	// Create a new session
+	sess := session.Must(session.NewSessionWithOptions(session.Options{Profile: lambdaToAudit.Profile}))
 
 	// map arn -> lambda configuration
 	lambdaConfigurations := make(map[string]*lambda.FunctionConfiguration)

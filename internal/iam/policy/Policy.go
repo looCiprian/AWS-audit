@@ -11,6 +11,7 @@ func Audit() {
 
 }
 
+// RunPolicyAudit("Lambda Role", <lambda name>, *policyDocument)
 func RunPolicyAudit(serviceName string, service string, policy utils.PolicyDocument) {
 
 	CheckPolicyWildCardPrincipal(serviceName, service, policy)

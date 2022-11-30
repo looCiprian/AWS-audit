@@ -1,4 +1,5 @@
 account_id: 1231231231233
+profile: default
 s3:
     - mybucketname
 lambda:
