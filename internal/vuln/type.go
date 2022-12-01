@@ -57,6 +57,7 @@ const (
 	IAMPolicyCrossAccount      VulnerabilityNameValue = "IAM policy allow cross account access"
 	LambdaCodeSigning          VulnerabilityNameValue = "Lambda function code signing not enabled"
 	LambdaEnvVariables         VulnerabilityNameValue = "Lambda function has environment variables"
+	RoleNotUsed                VulnerabilityNameValue = "Role has neverd used in the last 400 days"
 )
 
 // Remediations
@@ -76,4 +77,5 @@ var remediations = map[VulnerabilityNameValue]string{
 	IAMPolicyCrossAccount:      "Ensure that the policy does not allow cross account access",
 	LambdaCodeSigning:          "Ensure that the lambda function code signing is enabled",
 	LambdaEnvVariables:         "Ensure that the lambda function does not contain sensitive data or database credentials",
+	RoleNotUsed:                "Remove unused role",
 }

@@ -23,6 +23,11 @@ Allows to discover AWS misconfiguration and security issues on S3, Lambda Functi
 - Lambda Resource Policy Audit [principal, resource, action contains *]
 - Lambda Environment Audit
 
+### IAM Role
+
+- Check for unused role
+- Check role Policy Audit [principal, resource, action contains *]
+
 ## How to run
 ```
 go run AWS-audit.go -c aws-audit-example.yaml
