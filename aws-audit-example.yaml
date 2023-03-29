@@ -4,3 +4,5 @@ s3:
     - mybucketname
 lambda:
     - arn:aws:lambda:eu-central-1:1231231231233:function:test
+role:
+    - arn:aws:iam::1231231231233:role/service-role/myrolearn
